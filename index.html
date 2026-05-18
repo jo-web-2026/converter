@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Temperature Converter</title>
+    <meta name="description" content="Futuristic Celsius to Fahrenheit converter." />
+    <style>
+/* =====================================================
+   Futuristic Celsius → Fahrenheit Converter
+   Dark neon glassmorphism design — mobile-first
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Inter:wght@300;400;500;600&display=swap');
+
+/* ── Reset & base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --neon-blue:    #00d4ff;
+  --neon-purple:  #b44bff;
+  --neon-pink:    #ff2d9b;
+  --bg-deep:      #040812;
+  --bg-mid:       #070e1f;
+  --glass-bg:     rgba(8, 18, 42, 0.65);
+  --glass-border: rgba(0, 212, 255, 0.18);
+  --glass-border-active: rgba(0, 212, 255, 0.55);
+  --text-primary: #e8f4ff;
+  --text-muted:   rgba(180, 210, 255, 0.5);
+  --error-color:  #ff4d6d;
+  --radius-card:  24px;
+  --radius-input: 14px;
+
+  /* Glow shadows */
+  --glow-blue:   0 0 12px rgba(0, 212, 255, 0.6), 0 0 28px rgba(0, 212, 255, 0.25);
+  --glow-purple: 0 0 12px rgba(180, 75, 255, 0.6), 0 0 28px rgba(180, 75, 255, 0.25);
+  --glow-result: 0 0 20px rgba(0, 212, 255, 0.9), 0 0 50px rgba(0, 212, 255, 0.4), 0 0 90px rgba(0, 212, 255, 0.15);
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── Full-page layout ── */
+.app-wrapper {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem 2.5rem;
+  overflow: hidden;
+}
+
+/* ── Animated background orbs ── */
+.bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  pointer-events: none;
+  animation: orb-drift 10s ease-in-out infinite alternate;
+}
+
+.bg-orb-1 {
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.6), transparent 70%);
+  top: -10%;
+  left: -15%;
+  animation-duration: 12s;
+}
+
+.bg-orb-2 {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(180, 75, 255, 0.55), transparent 70%);
+  bottom: -10%;
+  right: -10%;
+  animation-duration: 9s;
+  animation-delay: -3s;
+}
+
+.bg-orb-3 {
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(255, 45, 155, 0.35), transparent 70%);
+  top: 50%;
+  left: 60%;
+  animation-duration: 15s;
+  animation-delay: -6s;
+}
+
+@keyframes orb-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, -25px) scale(1.08); }
+}
+
+/* ── Card ── */
+.converter-card {
+  /* Glassmorphism */
+  background: var(--glass-bg);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+
+  width: 100%;
+  max-width: 420px;
+  padding: 2.25rem 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+
+  animation: card-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ── Header ── */
+.card-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.header-icon {
+  font-size: 2.4rem;
+  filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.7));
+  animation: icon-pulse 3s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6)); }
+  50%       { filter: drop-shadow(0 0 22px rgba(180, 75, 255, 0.8)); }
+}
+
+.app-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.2rem, 5.5vw, 1.55rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: linear-gradient(120deg, var(--neon-blue) 0%, var(--neon-purple) 60%, var(--neon-pink) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.app-title .arrow {
+  display: inline-block;
+  animation: arrow-slide 2s ease-in-out infinite;
+}
+
+@keyframes arrow-slide {
+  0%, 100% { transform: translateX(0); }
+  50%       { transform: translateX(4px); }
+}
+
+.app-subtitle {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Input section ── */
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-input);
+  background: rgba(0, 18, 45, 0.5);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.input-wrapper:focus-within,
+.input-wrapper.input-active {
+  border-color: var(--glass-border-active);
+  box-shadow: var(--glow-blue), inset 0 0 12px rgba(0, 212, 255, 0.04);
+}
+
+.input-wrapper.input-error {
+  border-color: var(--error-color);
+  box-shadow: 0 0 14px rgba(255, 77, 109, 0.4);
+}
+
+.celsius-input {
+  /* Remove spinners */
+  -moz-appearance: textfield;
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 1rem 1rem 1rem 1.1rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.55rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+  width: 100%;
+}
+
+.celsius-input::-webkit-outer-spin-button,
+.celsius-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.celsius-input::placeholder {
+  color: rgba(180, 210, 255, 0.2);
+  font-weight: 400;
+}
+
+.input-unit {
+  padding-right: 1.1rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--neon-blue);
+  text-shadow: var(--glow-blue);
+  flex-shrink: 0;
+}
+
+/* Error message */
+.error-message {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--error-color);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  min-height: 1em;
+}
+
+.error-message.error-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Result section ── */
+.result-section {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.result-display {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 4.5rem;
+  transition: opacity 0.35s, transform 0.35s;
+  opacity: 0.25;
+  transform: scale(0.92);
+}
+
+.result-display.result-show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.result-value {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2.8rem, 14vw, 4rem);
+  font-weight: 800;
+  color: var(--neon-blue);
+  text-shadow: var(--glow-result);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  animation: result-glow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes result-glow {
+  from { text-shadow: 0 0 16px rgba(0, 212, 255, 0.85), 0 0 40px rgba(0, 212, 255, 0.35); }
+  to   { text-shadow: 0 0 28px rgba(0, 212, 255, 1),    0 0 70px rgba(0, 212, 255, 0.55), 0 0 110px rgba(180, 75, 255, 0.2); }
+}
+
+.result-unit {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  font-weight: 600;
+  color: var(--neon-purple);
+  text-shadow: var(--glow-purple);
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+}
+
+.result-placeholder {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2.8rem, 14vw, 4rem);
+  font-weight: 800;
+  color: rgba(0, 212, 255, 0.15);
+  line-height: 1;
+}
+
+.result-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Formula chip ── */
+.formula-chip {
+  display: flex;
+  justify-content: center;
+}
+
+.formula-text {
+  display: inline-block;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: rgba(0, 212, 255, 0.5);
+  background: rgba(0, 212, 255, 0.06);
+  border: 1px solid rgba(0, 212, 255, 0.12);
+  border-radius: 100px;
+  padding: 0.3rem 0.85rem;
+}
+
+/* ── Clear button ── */
+.clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-input);
+  border: 1px solid rgba(180, 75, 255, 0.2);
+  background: rgba(180, 75, 255, 0.06);
+  color: rgba(180, 210, 255, 0.35);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: not-allowed;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clear-btn.clear-btn-active {
+  border-color: rgba(180, 75, 255, 0.55);
+  background: rgba(180, 75, 255, 0.12);
+  color: var(--neon-purple);
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(180, 75, 255, 0.2);
+}
+
+.clear-btn.clear-btn-active:hover {
+  background: rgba(180, 75, 255, 0.2);
+  box-shadow: var(--glow-purple);
+  transform: translateY(-1px);
+}
+
+.clear-btn.clear-btn-active:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.clear-icon {
+  font-size: 0.85rem;
+  font-style: normal;
+}
+
+/* ── Footer ── */
+.app-footer {
+  margin-top: 1.5rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(0, 212, 255, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.footer-dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--neon-blue);
+  box-shadow: var(--glow-blue);
+  opacity: 0.5;
+  animation: dot-blink 2s ease-in-out infinite alternate;
+}
+
+.footer-dot:last-child {
+  animation-delay: 0.5s;
+}
+
+@keyframes dot-blink {
+  from { opacity: 0.3; }
+  to   { opacity: 0.8; }
+}
+
+/* ── Responsive tweaks ── */
+@media (max-width: 380px) {
+  .converter-card {
+    padding: 1.75rem 1.25rem 1.5rem;
+  }
+  .celsius-input {
+    font-size: 1.3rem;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.15ms !important;
+  }
+}
+
+    </style>
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <div class="bg-orb bg-orb-1"></div>
+      <div class="bg-orb bg-orb-2"></div>
+      <div class="bg-orb bg-orb-3"></div>
+
+      <main class="converter-card">
+        <header class="card-header">
+          <div class="header-icon">🌡</div>
+          <h1 class="app-title">Celsius <span class="arrow">→</span> Fahrenheit</h1>
+          <p class="app-subtitle">Real-time temperature converter</p>
+        </header>
+
+        <section class="input-section">
+          <label for="celsius-input" class="input-label">Enter Temperature (°C)</label>
+          <div id="input-wrapper" class="input-wrapper">
+            <input
+              id="celsius-input"
+              type="number"
+              inputmode="decimal"
+              placeholder="e.g. 100"
+              autocomplete="off"
+              class="celsius-input"
+              aria-describedby="error-msg"
+            />
+            <span class="input-unit">°C</span>
+          </div>
+          <p id="error-msg" class="error-message" role="alert" aria-live="polite">Enter a valid number</p>
+        </section>
+
+        <section class="result-section">
+          <div id="result-display" class="result-display">
+            <span class="result-placeholder">—</span>
+          </div>
+          <p class="result-label">Fahrenheit</p>
+        </section>
+
+        <div class="formula-chip">
+          <span class="formula-text">F = C × 9/5 + 32</span>
+        </div>
+
+        <button type="button" id="clear-btn" class="clear-btn" disabled aria-label="Clear input">
+          <span class="clear-icon">✕</span>
+          Clear
+        </button>
+      </main>
+
+      <footer class="app-footer">
+        <span class="footer-dot"></span>
+        Futuristic Unit Converter
+        <span class="footer-dot"></span>
+      </footer>
+    </div>
+
+    <script>
+      const input = document.getElementById('celsius-input');
+      const inputWrapper = document.getElementById('input-wrapper');
+      const errorMsg = document.getElementById('error-msg');
+      const resultDisplay = document.getElementById('result-display');
+      const clearBtn = document.getElementById('clear-btn');
+
+      function render() {
+        const value = input.value.trim();
+        const hasValue = value !== '';
+        const numberValue = Number(value);
+        const isError = hasValue && Number.isNaN(numberValue);
+
+        inputWrapper.classList.toggle('input-active', hasValue && !isError);
+        inputWrapper.classList.toggle('input-error', isError);
+        errorMsg.classList.toggle('error-visible', isError);
+        input.setAttribute('aria-invalid', String(isError));
+
+        clearBtn.disabled = !hasValue;
+        clearBtn.classList.toggle('clear-btn-active', hasValue);
+
+        if (!hasValue || isError) {
+          resultDisplay.classList.remove('result-show');
+          resultDisplay.innerHTML = '<span class="result-placeholder">—</span>';
+          return;
+        }
+
+        const fahrenheit = numberValue * 9 / 5 + 32;
+        const formatted = Number.isInteger(fahrenheit)
+          ? String(fahrenheit)
+          : String(parseFloat(fahrenheit.toFixed(2)));
+
+        resultDisplay.classList.add('result-show');
+        resultDisplay.innerHTML = `
+          <span class="result-value">${formatted}</span>
+          <span class="result-unit">°F</span>
+        `;
+      }
+
+      input.addEventListener('input', render);
+      clearBtn.addEventListener('click', () => {
+        input.value = '';
+        input.focus();
+        render();
+      });
+    </script>
+  </body>
+</html>
